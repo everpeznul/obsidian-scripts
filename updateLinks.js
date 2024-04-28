@@ -274,6 +274,34 @@ module.exports.onload = async (plugin) => {
 
         //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+        async findTag() {
+
+            let file = await this.findFounder(CELESTIA);
+            let title = file[0];
+            let tag;
+
+            if (title.includes("❤️‍🔥")) {
+
+                tag = "реализация";
+            }
+            else if (title.includes("🪨")) {
+
+                tag = "саморазвитие";
+            }
+            else if (title.includes("🌊")) {
+
+                tag = "личное";
+            }
+            else if (title.includes("🌬️")) {
+
+                tag = "духовность";
+            }
+
+            return `\n#${tag}`;
+        }
+
+        //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
         logData() {
             console.log("\n");
             console.log(this.title + "\n");
@@ -431,6 +459,41 @@ module.exports.onload = async (plugin) => {
 
             return this.findFounder(WORLD);;
         }
+
+        async findTag() {
+
+            let [founder_title, founder_text] = await this.findFounder(VOID);
+            let note = new Note(founder_title, founder_text);
+
+            if (is.Daily(note)) {
+
+                note = new Daily(founder_title, founder_text);
+            }
+
+            let new_founder = await note.findFounder(CELESTIA);
+            let title = new_founder[0];
+
+            let tag;
+
+            if (title.includes("❤️‍🔥")) {
+
+                tag = "реализация";
+            }
+            else if (title.includes("🪨")) {
+
+                tag = "саморазвитие";
+            }
+            else if (title.includes("🌊")) {
+
+                tag = "личное";
+            }
+            else if (title.includes("🌬️")) {
+
+                tag = "духовность";
+            }
+
+            return `\n#${tag}`;
+        }
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -540,6 +603,7 @@ module.exports.onload = async (plugin) => {
     const CELESTIA_IDENT = new Ident(CELESTIA_PATH, CELESTIA_FOUNER_ALIAS, CELESTIA_ANCESTOR_ALIAS, CELESTIA_FATHER_ALIAS);
 
     let CELESTIA;
+    let VOID;
 
     plugin.addCommand({
         id: 'update links of storage',
@@ -552,7 +616,7 @@ module.exports.onload = async (plugin) => {
             let VOID_FILES = ALL_FILES.filter(file => file.path.startsWith(VOID_IDENT.path));
             let CELESTIA_FILES = ALL_FILES.filter(file => file.path.startsWith(CELESTIA_IDENT.path));
 
-            let VOID = new World(VOID_FILES, VOID_IDENT);
+            VOID = new World(VOID_FILES, VOID_IDENT);
             CELESTIA = new World(CELESTIA_FILES, CELESTIA_IDENT);
 
             VOID.files.sort((a, b) => a.basename > b.basename ? 1 : -1);
@@ -577,7 +641,7 @@ module.exports.onload = async (plugin) => {
         }
 
     }
-    //пройтись по каждому набору файлов
+
     async function update(FILE, WORLD) {
 
         console.log(`---------------------------\n---------------------------`);
@@ -636,10 +700,10 @@ module.exports.onload = async (plugin) => {
 
         let links = new Links(note, WORLD.ident, founder, ancestor, father);
 
-        const NOTE_TEXT_NEW = [links.getFLinks(), `# ${note.head}`, note.content].join("\n");
+        let tag = await note.findTag();
+
+        const NOTE_TEXT_NEW = [links.getFLinks(), tag, `# ${note.head}`, note.content].join("\n");
 
         await plugin.app.vault.modify(FILE, NOTE_TEXT_NEW);
     }
 }
-
-
