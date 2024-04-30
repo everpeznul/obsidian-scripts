@@ -606,8 +606,8 @@ module.exports.onload = async (plugin) => {
     let VOID;
 
     plugin.addCommand({
-        id: 'update links of note',
-        name: 'Update Links of Note',
+        id: 'update links of storage',
+        name: 'Update Links of Storage',
         callback: async () => {
 
             new Notice('Начато обновление ссылок');
@@ -622,15 +622,25 @@ module.exports.onload = async (plugin) => {
             VOID.files.sort((a, b) => a.basename > b.basename ? 1 : -1);
             CELESTIA.files.sort((a, b) => a.basename > b.basename ? 1 : -1);
 
-            let FILE = plugin.app.workspace.getActiveFile();
-
-            let WORLD = await plugin.helpers.suggest(['VOID', 'CELESTIA'], [VOID, CELESTIA]);
-
-            await update(FILE, WORLD);
+            await iterate(VOID, CELESTIA);
 
             new Notice('Обновление ссылок закончено');
         }
     });
+
+    async function iterate(VOID) {
+
+        for (const FILE of CELESTIA.files) {
+
+            await update(FILE, CELESTIA);
+        }
+
+        for (const FILE of VOID.files) {
+
+            await update(FILE, VOID)
+        }
+
+    }
 
     async function update(FILE, WORLD) {
 
