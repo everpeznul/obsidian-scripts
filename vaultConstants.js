@@ -1,4 +1,4 @@
-const { Ident } = require('/Users/everpeznul/sync/obsidian/obsidian-scripts/vaultClasses');
+const { Ident } = require('/Users/everpeznul/sync/myObsidian/obsidian-scripts/vaultClasses');
 
 const VOID_PATH = "master/<9> void/";
 const VOID_FOUNDER_ALIAS = "herald";

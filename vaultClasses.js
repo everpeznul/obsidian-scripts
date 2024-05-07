@@ -1,3 +1,67 @@
+let plugin;
+
+async function update(FILE, WORLD, CELESTIA, plugin_) {
+
+    plugin = plugin_;
+
+    console.log(`---------------------------\n"${FILE.basename}"\n---------------------------`);
+
+    let TITLE = FILE.basename;
+    const TEXT = await plugin.app.vault.read(FILE);
+
+    let note = new Note(TITLE, TEXT);
+
+    if (Is.Thought(note)) {
+
+        note = new Thought(TITLE, TEXT);
+    }
+    else if (Is.Dream(note)) {
+
+        note = new Dream(TITLE, TEXT);
+    }
+    else if (Is.Daily(note)) {
+
+        note = new Daily(TITLE, TEXT);
+    }
+
+    let l = [];
+
+    if (note.len === 1) {
+        if (Is.Daily(note)) {
+
+            if (note.title === "0000-00-00") {
+
+                l = await note.findConnect(CELESTIA, CELESTIA);
+            }
+            else {
+
+                l = await note.findConnect(WORLD, CELESTIA);
+            }
+        }
+        else {
+
+            let [founderTitle, founderText] = await note.findFounder(CELESTIA, CELESTIA);
+
+            let f = new Note(founderTitle, founderText);
+            l.push(f, f, f);
+        }
+    }
+    else {
+
+        l = await note.findConnect(WORLD, CELESTIA);
+    }
+
+    let [founder, ancestor, father] = l;
+
+    let links = new Links(note, WORLD.ident, founder, ancestor, father);
+
+    let tag = await note.findTag(WORLD, CELESTIA);
+
+    const NOTE_TEXT_NEW = [links.getFLinks(), tag, `# ${note.head}`, note.content].join("\n");
+
+    await plugin.app.vault.modify(FILE, NOTE_TEXT_NEW);
+}
+
 class Ident {
 
     path;
@@ -87,7 +151,6 @@ class Word {
 }
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class Note {
-    plugin;
 
     title;   //строка
     words;   //массив Word
@@ -97,8 +160,7 @@ class Note {
     text;    //строка
     content; //строка
 
-    constructor(TITLE, TEXT, plugin) {
-        this.plugin = plugin;
+    constructor(TITLE, TEXT) {
 
         console.log("Note constructor");
 
@@ -161,7 +223,7 @@ class Note {
 
             try {
 
-                await this.plugin.app.vault.create(WORLD.ident.path + TITLE + ".md", "\n# temp");
+                await plugin.app.vault.create(WORLD.ident.path + TITLE + ".md", "\n# temp");
 
                 console.log(`        Заметка "${TITLE}" успешно создана в "${WORLD.ident.path}"`);
             }
@@ -170,7 +232,7 @@ class Note {
                 console.error(`        Ошибка: не получилось создать заметку "${TITLE}" в "${WORLD.ident.path}"`, error);
             }
 
-            let NEW_FILES = await this.plugin.app.vault.getMarkdownFiles();
+            let NEW_FILES = await plugin.app.vault.getMarkdownFiles();
             WORLD.files = NEW_FILES.filter(file => file.path.startsWith(WORLD.ident.path));
             WORLD.files.sort((a, b) => a.basename > b.basename ? 1 : -1);
 
@@ -185,7 +247,7 @@ class Note {
         }
 
         let fileTitle = FILE.basename;
-        let TEXT = await this.plugin.app.vault.read(FILE);
+        let TEXT = await plugin.app.vault.read(FILE);
 
         return [fileTitle, TEXT];
     }
@@ -244,7 +306,7 @@ class Note {
 
             if (FATHER) {
 
-                return [FATHER.basename, await this.plugin.app.vault.read(FATHER)];
+                return [FATHER.basename, await plugin.app.vault.read(FATHER)];
             }
             else if (FATHER_TITLE.endsWith("%")) {
 
@@ -264,9 +326,9 @@ class Note {
         let [ancestorTitle, ancestorText] = await this.findAncestor(WORLD, CELESTIA);
         let [fatherTitle, fatherText] = await this.findFather(WORLD, CELESTIA);
 
-        let founder = new Note(founderTitle, founderText, this.plugin);
-        let ancestor = new Note(ancestorTitle, ancestorText, this.plugin);
-        let father = new Note(fatherTitle, fatherText, this.plugin);
+        let founder = new Note(founderTitle, founderText);
+        let ancestor = new Note(ancestorTitle, ancestorText);
+        let father = new Note(fatherTitle, fatherText);
 
         return [founder, ancestor, father];
     }
@@ -323,10 +385,10 @@ class Note {
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class Human extends Note {
 
-    constructor(TITLE, TEXT, plugin) {
+    constructor(TITLE, TEXT) {
         console.log("Human constructor");
 
-        super(TITLE, TEXT, plugin);
+        super(TITLE, TEXT);
 
 
         //head
@@ -336,9 +398,9 @@ class Human extends Note {
 
 class Periodic extends Note {
 
-    constructor(TITLE, TEXT, plugin) {
+    constructor(TITLE, TEXT) {
 
-        super(TITLE, TEXT, plugin);
+        super(TITLE, TEXT);
         console.log("this is periodic constructor");
 
     }
@@ -346,10 +408,10 @@ class Periodic extends Note {
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class Dream extends Periodic {
 
-    constructor(TITLE, TEXT, plugin) {
+    constructor(TITLE, TEXT) {
         console.log("Dream constructor");
 
-        super(TITLE, TEXT, plugin);
+        super(TITLE, TEXT);
 
         //head
         const DREAM_NUMBER = {
@@ -368,7 +430,7 @@ class Dream extends Periodic {
 
     async findAncestor(WORLD, CELESTIA) {
 
-        const [DATE, OK] = has.Date(this);
+        const [DATE, OK] = Has.Date(this);
         if (OK) {
 
             console.log(`    Thought ancestor:\n    "${DATE}"`);
@@ -385,10 +447,10 @@ class Dream extends Periodic {
 
 class Thought extends Periodic {
 
-    constructor(TITLE, TEXT, plugin) {
+    constructor(TITLE, TEXT) {
         console.log("Thought constructor");
 
-        super(TITLE, TEXT, plugin);
+        super(TITLE, TEXT);
 
         //head
         const THOUGHT_NUMBER = {
@@ -407,7 +469,7 @@ class Thought extends Periodic {
 
     async findAncestor(WORLD, CELESTIA) {
 
-        const [DATE, OK] = has.Date(this);
+        const [DATE, OK] = Has.Date(this);
         if (OK) {
 
             console.log(`Thought ancestor:\n    "${DATE}"`);
@@ -424,17 +486,17 @@ class Thought extends Periodic {
 
 class Daily extends Periodic {
 
-    constructor(TITLE, TEXT, plugin) {
+    constructor(TITLE, TEXT) {
         console.log("Daily constructor");
 
-        super(TITLE, TEXT, plugin);
+        super(TITLE, TEXT);
     }
 
     async findFounder(WORLD, CELESTIA) {
 
         let FOUNDER;
 
-        const [DATE, OK] = has.Date(this);
+        const [DATE, OK] = Has.Date(this);
         if (OK && (DATE !== "0000-00-00")) {
 
             FOUNDER = await this.find(WORLD, "0000-00-00");
@@ -462,11 +524,11 @@ class Daily extends Periodic {
     async findTag(WORLD, CELESTIA) {
 
         let [founder_title, founder_text] = await this.findFounder(WORLD, CELESTIA);
-        let note = new Note(founder_title, founder_text, this.plugin);
+        let note = new Note(founder_title, founder_text);
 
-        if (is.Daily(note)) {
+        if (Is.Daily(note)) {
 
-            note = new Daily(founder_title, founder_text, this.plugin);
+            note = new Daily(founder_title, founder_text);
         }
 
         let new_founder = await note.findFounder(CELESTIA, CELESTIA);
@@ -502,34 +564,34 @@ class Is {
     constructor() {
     }
 
-    Dream(note) {
+    static Dream(note) {
 
         return note.title.startsWith("сон.");
     }
 
-    Thought(note) {
+    static Thought(note) {
 
         return note.title.startsWith("мысль.");
     }
 
-    Daily(note) {
+    static Daily(note) {
 
         return /^\d{4}-\d{2}-\d{2}$/.test(note.title);
     }
 
-    Human(note) {
+    static Human(note) {
 
         return /^человек\.[^.]+$/.test(note.title);
     }
 
-    Note(note) {
+    static Note(note) {
         return (!this.Dream(note) && !this.Thought(note) && !this.Daily(note) && !this.Human(note));
     }
 }
 
 class Has {
 
-    Date(note) {
+    static Date(note) {
 
         let match = note.title.match(/(\d{4}-\d{2}-\d{2})/);
         if (match) {
@@ -543,9 +605,6 @@ class Has {
     }
 
 }
-
-let is = new Is();
-let has = new Has();
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class Links {
@@ -575,9 +634,9 @@ class Links {
         let ANCESTOR_RETURN = this.ancestor.getLink(this.ident.ancestorAlias);
         let FATHER_RETURN = this.father.getLink(this.ident.fatherAlias);
 
-        if (is.Note(this.note)) {
+        if (Is.Note(this.note)) {
             //имя содержит дату, но не является ежедневной заметкой
-            let [date, OK] = has.Date(this.note);
+            let [date, OK] = Has.Date(this.note);
             if (OK) {
                 ANCESTOR_RETURN += `[${this.ident.ancestorAlias}:: [[${date}#${date}|${date}]]]`;
             }
@@ -585,66 +644,6 @@ class Links {
 
         return [FOUNDER_RETURN, ANCESTOR_RETURN, FATHER_RETURN].join("\n");
     }
-}
-
-async function update(FILE, WORLD, CELESTIA, plugin) {
-
-    console.log(`---------------------------\n"${FILE.basename}"\n---------------------------`);
-
-    let TITLE = FILE.basename;
-    const TEXT = await plugin.app.vault.read(FILE);
-
-    let note = new Note(TITLE, TEXT, plugin);
-
-    if (is.Thought(note)) {
-
-        note = new Thought(TITLE, TEXT, plugin);
-    }
-    else if (is.Dream(note)) {
-
-        note = new Dream(TITLE, TEXT, plugin);
-    }
-    else if (is.Daily(note)) {
-
-        note = new Daily(TITLE, TEXT, plugin);
-    }
-
-    let l = [];
-
-    if (note.len === 1) {
-        if (is.Daily(note)) {
-
-            if (note.title === "0000-00-00") {
-
-                l = await note.findConnect(CELESTIA, CELESTIA);
-            }
-            else {
-
-                l = await note.findConnect(WORLD, CELESTIA);
-            }
-        }
-        else {
-
-            let [founderTitle, founderText] = await note.findFounder(CELESTIA, CELESTIA);
-
-            let f = new Note(founderTitle, founderText, plugin);
-            l.push(f, f, f);
-        }
-    }
-    else {
-
-        l = await note.findConnect(WORLD, CELESTIA);
-    }
-
-    let [founder, ancestor, father] = l;
-
-    let links = new Links(note, WORLD.ident, founder, ancestor, father);
-
-    let tag = await note.findTag(WORLD, CELESTIA);
-
-    const NOTE_TEXT_NEW = [links.getFLinks(), tag, `# ${note.head}`, note.content].join("\n");
-
-    await plugin.app.vault.modify(FILE, NOTE_TEXT_NEW);
 }
 
 module.exports = {
