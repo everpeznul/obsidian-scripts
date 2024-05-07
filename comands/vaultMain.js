@@ -3,6 +3,7 @@ module.exports.onload = async (plugin) => {
 
     const { updateAllLinks } = require('/Users/everpeznul/sync/myObsidian/obsidian-scripts/comands/comandUpdateAllLinks');
     const { updateNoteLinks } = require('/Users/everpeznul/sync/myObsidian/obsidian-scripts/comands/comandUpdateNoteLinks');
+    const { newPeriodicNote } = require('/Users/everpeznul/sync/myObsidian/obsidian-scripts/comands/newPeriodicNote');
 
     const { Modal } = plugin.passedModules.obsidian;
 
@@ -62,6 +63,18 @@ module.exports.onload = async (plugin) => {
 
                 new Notice('Обновление ссылок хранилища закончено');
             }).open();
+        }
+    });
+
+    plugin.addCommand({
+        id: 'create new periodic',
+        name: 'Create New Periodic',
+        callback: async () => {
+            new Notice('Создание начато');
+
+            await newPeriodicNoteK(plugin);
+
+            new Notice('Создание закончено');
         }
     });
 };
