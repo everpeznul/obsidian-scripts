@@ -72,7 +72,7 @@ module.exports.onload = async (plugin) => {
         callback: async () => {
             new Notice('Создание начато');
 
-            await newPeriodicNoteK(plugin);
+            await newPeriodicNote(plugin);
 
             new Notice('Создание закончено');
         }
