@@ -1,5 +1,6 @@
-const { World, update } = require('/Users/everpeznul/sync/myObsidian/obsidian-scripts/vaultClasses');
-const { VOID_IDENT, CELESTIA_IDENT } = require('/Users/everpeznul/sync/myObsidian/obsidian-scripts/vaultConstants');
+const { World } = require('./source/subClasses');
+const { update } = require('./source/updateLinks');
+const { VOID_IDENT, CELESTIA_IDENT } = require('./source/vaultConstants');
 
 
 async function updateNoteLinks(plugin) {

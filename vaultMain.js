@@ -1,9 +1,15 @@
 module.exports = {}
 module.exports.onload = async (plugin) => {
 
-    const { updateAllLinks } = require('/Users/everpeznul/sync/myObsidian/obsidian-scripts/comands/comandUpdateAllLinks');
-    const { updateNoteLinks } = require('/Users/everpeznul/sync/myObsidian/obsidian-scripts/comands/comandUpdateNoteLinks');
-    const { newPeriodicNote } = require('/Users/everpeznul/sync/myObsidian/obsidian-scripts/comands/newPeriodicNote');
+    const { setPlugin1 } = require('/Users/everpeznul/myObsidian/obsidian-scripts/source/noteClasses');
+    const { setPlugin2 } = require('/Users/everpeznul/myObsidian/obsidian-scripts/source/subClasses');
+
+    setPlugin1(plugin);
+    setPlugin2(plugin);
+
+    const { updateAllLinks } = require('/Users/everpeznul/myObsidian/obsidian-scripts/comandUpdateAllLinks');
+    const { updateNoteLinks } = require('/Users/everpeznul/myObsidian/obsidian-scripts/comandUpdateNoteLinks');
+    const { newPeriodicNote } = require('/Users/everpeznul/myObsidian/obsidian-scripts/comandNewPeriodicNote');
 
     const { Modal } = plugin.passedModules.obsidian;
 
@@ -35,6 +41,8 @@ module.exports.onload = async (plugin) => {
             });
         }
     }
+
+    console.log(process.cwd());
 
 
     plugin.addCommand({
