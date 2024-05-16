@@ -1,40 +1,8 @@
-
-
 let plugin;
 
 function setPlugin2(plug) {
 
     plugin = plug;
-}
-
-class Ident {
-
-    path;
-
-    founderAlias;
-    ancestorAlias;
-    fatherAlias;
-
-    constructor(path, founderAlias, ancestorAlias, fatherAlias) {
-
-        this.path = path;
-
-        this.founderAlias = founderAlias;
-        this.ancestorAlias = ancestorAlias;
-        this.fatherAlias = fatherAlias;
-    }
-}
-
-class World {
-
-    files;
-    ident;
-
-    constructor(files, ident) {
-
-        this.files = files;
-        this.ident = ident;
-    }
 }
 
 class Word {
@@ -95,6 +63,26 @@ class Word {
     }
 }
 
+class Ident {
+
+    constructor(founderAlias, ancestorAlias, fatherAlias) {
+
+        this.founderAlias = founderAlias;
+        this.ancestorAlias = ancestorAlias;
+        this.fatherAlias = fatherAlias;
+    }
+}
+
+class World {
+
+    constructor(files, path, ident) {
+
+        this.files = files;
+        this.path = path;
+        this.ident = ident;
+    }
+}
+
 class Is {
 
     constructor() {
@@ -142,53 +130,12 @@ class Has {
 
 }
 
-class Links {
-    note;
-
-    founder;
-    ancestor;
-    father;
-
-    ident;
-
-    constructor(note, IDENT, founder, ancestor, father) {
-
-        this.note = note;
-
-        this.founder = founder;
-        this.ancestor = ancestor;
-        this.father = father;
-
-        this.ident = IDENT;
-
-    }
-
-    getFLinks() {
-
-        let FOUNDER_RETURN = this.founder.getLink(this.ident.founderAlias);
-        let ANCESTOR_RETURN = this.ancestor.getLink(this.ident.ancestorAlias);
-        let FATHER_RETURN = this.father.getLink(this.ident.fatherAlias);
-
-        if (Is.Note(this.note)) {
-            //имя содержит дату, но не является ежедневной заметкой
-            let [date, OK] = Has.Date(this.note);
-            if (OK) {
-                ANCESTOR_RETURN += `[${this.ident.ancestorAlias}:: [[${date}#${date}|${date}]]]`;
-            }
-        }
-
-        return [FOUNDER_RETURN, ANCESTOR_RETURN, FATHER_RETURN].join("\n");
-    }
-}
-
-
 module.exports = {
 
     setPlugin2,
+    Word,
     Ident,
     World,
-    Word,
     Is,
-    Has,
-    Links
+    Has
 };

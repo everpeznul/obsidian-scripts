@@ -1,6 +1,4 @@
-const { } = require('./vaultConstants');
-const { setPlugin2, Ident, World, Word, Is, Has, Links } = require('./subClasses');
-
+const { Word, Is, Has } = require('./subClasses');
 
 
 let plugin
@@ -12,117 +10,146 @@ function setPlugin1(plug) {
 
 class Note {
 
-    title;   //строка
-    words;   //массив Word
-    len;     //число
-    name;    //Word
-    head;    //строка
-    text;    //строка
-    content; //строка
 
-    constructor(TITLE, TEXT) {
+    //методы установки полей класса
 
-        console.log("Note constructor");
+    getTitle(TITLE) {
 
-        //title
-        this.title = TITLE;
-
-        //words
-        this.words = [];
-        for (const WORD of this.title.split(".")) {
-
-            this.words.push(new Word(WORD));
-        }
-
-        //len
-        this.len = this.words.length;
-
-        //name
-        this.name = this.words[this.len - 1];
-
-        //head
-        if (this.name.isOrder()) {
-
-            this.head = [this.name.getFContent(), this.words[this.len - 2].getFContent()].join(" ");
-        }
-        else {
-
-            this.head = this.name.getFContent();
-        }
-
-        //text
-        this.text = TEXT;
-
-        //content
-        this.content = this.text.split(/^# .*$/gm).pop();
+        return TITLE;
     }
 
-    //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    getSWords(start = 0, end = this.len) {
+    getWords() {
 
         let temp = [];
-        for (let i = start; i < end; i++) {
+        for (const WORD of this.title.split(".")) {
 
-            temp.push(this.words[i].text);
-
+            temp.push(new Word(WORD));
         }
 
         return temp;
     }
 
-    //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    getLen() {
 
-    async find(WORLD, TITLE, CREATE = true) {
-
-        let FILE;
-
-        FILE = WORLD.files.find(file => file.basename.endsWith(TITLE));
-
-        if (!FILE && CREATE) {
-
-            try {
-
-                await plugin.app.vault.create(WORLD.ident.path + TITLE + ".md", "\n# temp");
-
-                console.log(`        Заметка "${TITLE}" успешно создана в "${WORLD.ident.path}"`);
-            }
-            catch {
-
-                console.error(`        Ошибка: не получилось создать заметку "${TITLE}" в "${WORLD.ident.path}"`, error);
-            }
-
-            let NEW_FILES = await plugin.app.vault.getMarkdownFiles();
-            WORLD.files = NEW_FILES.filter(file => file.path.startsWith(WORLD.ident.path));
-            WORLD.files.sort((a, b) => a.basename > b.basename ? 1 : -1);
-
-            FILE = WORLD.files.find(file => file.basename.endsWith(TITLE));
-
-            await update(FILE, WORLD);
-
-        }
-        else if (!CREATE) {
-
-            return FILE;
-        }
-
-        let fileTitle = FILE.basename;
-        let TEXT = await plugin.app.vault.read(FILE);
-
-        return [fileTitle, TEXT];
+        return this.words.length;
     }
 
-    async findFounder(WORLD, CELESTIA) {
+    getName() {
 
-        const FOUNDER_TITLE = this.words[0].text;
-        console.log(`    Note founder:\n        "${FOUNDER_TITLE}"`);
-
-        const FOUNDER = await this.find(WORLD, FOUNDER_TITLE);
-
-        return FOUNDER;
+        return this.words[this.len - 1];
     }
 
-    async findAncestor(WORLD, CELESTIA) {
+    getHead() {
+
+        let temp;
+
+        if (this.name.isOrder()) {
+
+            temp = [this.name.getFContent(), this.words[this.len - 2].getFContent()].join(" ");
+        }
+        else {
+
+            temp = this.name.getFContent();
+        }
+
+        return temp;
+    }
+
+    getText(TEXT) {
+
+        return TEXT;
+    }
+
+    getContent() {
+
+        return this.text.split(/^# .*$/gm).pop();
+    }
+
+    //инициализация значений в конструкторе
+
+    constructor(TITLE, TEXT) {
+        console.log("Note constructor");
+
+        this.title = this.getTitle(TITLE);
+        this.words = this.getWords();
+        this.len = this.getLen();
+        this.name = this.getName();
+        this.head = this.getHead();
+        this.text = this.getText(TEXT);
+        this.content = this.getContent();
+    }
+
+    //методы форматированного доступа к полям класса
+
+    getSWords(start = 0, end = this.len) {
+
+        let temp = [];
+        for (let word of this.words.slice(start, end)) {
+
+            temp.push(word.text);
+        }
+
+        return temp;
+    }
+
+    //методы поиска других заметок
+
+    async find(graph, reqTitle, create = true) {
+
+        let reqFile;
+
+        reqFile = graph.files.find(file => file.basename.endsWith(reqTitle));
+
+        if (!reqFile) {
+
+            if (create) {
+
+                const { update } = require('./updateLinks')
+
+                try {
+
+                    await plugin.app.vault.create(graph.path + reqTitle + ".md", "\n# temp");
+
+                    console.log(`        Заметка "${reqTitle}" успешно создана в "${graph.path}"`);
+                }
+                catch (error) {
+
+                    console.error(`        Ошибка: заметка "${reqTitle}" уже существует в "${graph.path}"`, error);
+                }
+
+                let filesNew = await plugin.app.vault.getMarkdownFiles();
+                graph.files = filesNew.filter(file => file.path.startsWith(graph.path));
+                graph.files.sort((a, b) => a.basename > b.basename ? 1 : -1);
+
+                reqFile = graph.files.find(file => file.basename.endsWith(reqTitle));
+
+                await update(reqFile, graph);
+            }
+            else {
+
+                console.error(`        Ошибка: не получилось создать заметку "${reqTitle}" в "${graph.path}"`);
+
+                return null;
+            }
+        }
+
+        let fileTitle = reqFile.basename;
+        let reqText = await plugin.app.vault.read(reqFile);
+
+        return [fileTitle, reqText];
+    }
+
+    async findFounder(graph, celestia) {
+
+        let founderTitle = this.words[0].text;
+        console.log(`    Note founder:\n        "${founderTitle}"`);
+
+        let founder = await this.find(graph, founderTitle);
+
+        return founder;
+    }
+
+    async findAncestor(graph, celestia) {
 
         let temp = [];
 
@@ -144,81 +171,53 @@ class Note {
 
         }
 
-        const ANCESTOR_TITLE = temp;
+        let ancestorTitle = temp;
 
-        console.log(`    Note ancestor:\n        "${ANCESTOR_TITLE}"`);
+        console.log(`    Note ancestor:\n        "${ancestorTitle}"`);
 
 
-        const ANCESTOR = await this.find(WORLD, ANCESTOR_TITLE);
+        let ancestor = await this.find(graph, ancestorTitle);
 
-        return ANCESTOR;
+        return ancestor;
     }
 
-    async findFather(WORLD, CELESTIA) {
+    async findFather(graph, celestia) {
 
         if (this.len > 1) {
 
-            const FATHER_TITLE = this.getSWords(0, this.len - 1).join(".");
+            let fatherTitle = this.getSWords(0, this.len - 1).join(".");
 
-            console.log(`    Note father:\n        "${FATHER_TITLE}"`);
+            console.log(`    Note father:\n        "${fatherTitle}"`);
 
-            let FATHER = await this.find(WORLD, FATHER_TITLE, false);
+            let father = await this.find(graph, fatherTitle, false);
 
-            if (FATHER) {
+            if (father != null) {
 
-                return [FATHER.basename, await plugin.app.vault.read(FATHER)];
+                return father;
             }
-            else if (FATHER_TITLE.endsWith("%")) {
+            else if (fatherTitle.endsWith("%")) {
 
-                console.log(`    Note father_dif:\n        "${FATHER_TITLE.slice(0, -1)}"`);
+                console.log(`    Note father_dif:\n        "${fatherTitle.slice(0, -1)}"`);
 
-                FATHER = await this.find(WORLD, FATHER_TITLE.slice(0, -1));
+                father = await this.find(graph, fatherTitle.slice(0, -1));
 
-                return FATHER;
+                return father;
             }
         }
     }
 
-    async findConnect(WORLD, CELESTIA) {
+    async findConnect(graph, celestia) {
         console.log("Note connect");
 
-        let [founderTitle, founderText] = await this.findFounder(WORLD, CELESTIA);
-        let [ancestorTitle, ancestorText] = await this.findAncestor(WORLD, CELESTIA);
-        let [fatherTitle, fatherText] = await this.findFather(WORLD, CELESTIA);
+        let [founderTitle, founderText] = await this.findFounder(graph, celestia);
+        let [ancestorTitle, ancestorText] = await this.findAncestor(graph, celestia);
+        let [fatherTitle, fatherText] = await this.findFather(graph, celestia);
 
         let founder = new Note(founderTitle, founderText);
         let ancestor = new Note(ancestorTitle, ancestorText);
         let father = new Note(fatherTitle, fatherText);
 
         return [founder, ancestor, father];
-    }
-
-    //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    async findTag(WORLD, CELESTIA) {
-
-        let file = await this.findFounder(CELESTIA, CELESTIA);
-        let title = file[0];
-        let tag;
-
-        if (title.includes("❤️‍🔥")) {
-
-            tag = "реализация";
-        }
-        else if (title.includes("🪨")) {
-
-            tag = "саморазвитие";
-        }
-        else if (title.includes("🌊")) {
-
-            tag = "личное";
-        }
-        else if (title.includes("🌬️")) {
-
-            tag = "духовность";
-        }
-
-        return `\n#${tag}`;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -245,36 +244,33 @@ class Note {
 
 class Human extends Note {
 
+    getHead() {
+
+        return this.name.getFContent().split(" ")[1];
+    }
+
     constructor(TITLE, TEXT) {
         console.log("Human constructor");
 
         super(TITLE, TEXT);
-
-
-        //head
-        this.head = this.name.getFContent().split(" ")[1];
     }
 }
 
 class Periodic extends Note {
 
     constructor(TITLE, TEXT) {
+        console.log("Periodic constructor");
 
         super(TITLE, TEXT);
-        console.log("this is periodic constructor");
-
     }
 }
 
 class Dream extends Periodic {
 
-    constructor(TITLE, TEXT) {
-        console.log("Dream constructor");
+    getHead() {
 
-        super(TITLE, TEXT);
-
-        //head
         const DREAM_NUMBER = {
+
             "1": "Первый",
             "2": "Второй",
             "3": "Третий",
@@ -285,35 +281,39 @@ class Dream extends Periodic {
             "8": "Восьмой",
             "9": "Девятый"
         };
-        this.head = DREAM_NUMBER[this.name.getFContent()];
+
+        return DREAM_NUMBER[this.name.getFContent()];
     }
 
-    async findAncestor(WORLD, CELESTIA) {
+    constructor(TITLE, TEXT) {
+        console.log("Dream constructor");
 
-        const [DATE, OK] = Has.Date(this);
-        if (OK) {
+        super(TITLE, TEXT);
+    }
 
-            console.log(`    Thought ancestor:\n    "${DATE}"`);
-            const ANCESTOR = await this.find(WORLD, DATE);
+    async findAncestor(graph, celestia) {
 
-            return ANCESTOR;
+        let [date, ok] = Has.Date(this);
+        if (ok) {
+
+            console.log(`    Thought ancestor:\n    "${date}"`);
+            let ancestor = await this.find(graph, date);
+
+            return ancestor;
         }
     }
-    async findFather(WORLD, CELESTIA) {
+    async findFather(graph, celestia) {
 
-        return this.findFounder(WORLD);
+        return this.findFounder(graph);
     }
 }
 
 class Thought extends Periodic {
 
-    constructor(TITLE, TEXT) {
-        console.log("Thought constructor");
+    getHead() {
 
-        super(TITLE, TEXT);
-
-        //head
         const THOUGHT_NUMBER = {
+
             "1": "Первая",
             "2": "Вторая",
             "3": "Третья",
@@ -324,23 +324,30 @@ class Thought extends Periodic {
             "8": "Восьмая",
             "9": "Девятая"
         };
-        this.head = THOUGHT_NUMBER[this.name.getFContent()];
+
+        return THOUGHT_NUMBER[this.name.getFContent()];
     }
 
-    async findAncestor(WORLD, CELESTIA) {
+    constructor(TITLE, TEXT) {
+        console.log("Thought constructor");
 
-        const [DATE, OK] = Has.Date(this);
-        if (OK) {
+        super(TITLE, TEXT);
+    }
 
-            console.log(`Thought ancestor:\n    "${DATE}"`);
-            const ANCESTOR = await this.find(WORLD, DATE);
+    async findAncestor(graph, celestia) {
 
-            return ANCESTOR;
+        let [date, ok] = Has.Date(this);
+        if (ok) {
+
+            console.log(`Thought ancestor:\n    "${date}"`);
+            let ancestor = await this.find(graph, date);
+
+            return ancestor;
         }
     }
-    async findFather(WORLD, CELESTIA) {
+    async findFather(graph, celestia) {
 
-        return this.findFounder(WORLD);
+        return this.findFounder(graph);
     }
 }
 
@@ -352,70 +359,56 @@ class Daily extends Periodic {
         super(TITLE, TEXT);
     }
 
-    async findFounder(WORLD, CELESTIA) {
+    async findFounder(graph, celestia) {
 
-        let FOUNDER;
+        let founder;
 
-        const [DATE, OK] = Has.Date(this);
-        if (OK && (DATE !== "0000-00-00")) {
+        let [date, ok] = Has.Date(this);
+        if (ok && date !== "0000-00-00") {
 
-            FOUNDER = await this.find(WORLD, "0000-00-00");
+            founder = await this.find(graph, "0000-00-00");
         }
-        else if (OK && DATE === "0000-00-00") {
+        else if (ok && date === "0000-00-00") {
 
-            FOUNDER = await this.find(CELESTIA, "<1>❤️‍🔥.календарь.периодическая.daily");
+            founder = await this.find(celestia, "<1>❤️‍🔥.календарь.периодическая.daily");
         }
 
-        console.log(`    Daily founder:\n    "${DATE}"`)
+        console.log(`    Daily founder:\n    "${date}"`)
 
-        return FOUNDER;
+        return founder;
     }
 
-    async findAncestor(WORLD, CELESTIA) {
+    async findAncestor(graph, celestia) {
 
-        return this.findFounder(WORLD, CELESTIA);
+        return this.findFounder(graph, celestia);
     }
 
-    async findFather(WORLD, CELESTIA) {
+    async findFather(graph, celestia) {
 
-        return this.findFounder(WORLD, CELESTIA);;
-    }
-
-    async findTag(WORLD, CELESTIA) {
-
-        let [founder_title, founder_text] = await this.findFounder(WORLD, CELESTIA);
-        let note = new Note(founder_title, founder_text);
-
-        if (Is.Daily(note)) {
-
-            note = new Daily(founder_title, founder_text);
-        }
-
-        let new_founder = await note.findFounder(CELESTIA, CELESTIA);
-        let title = new_founder[0];
-
-        let tag;
-
-        if (title.includes("❤️‍🔥")) {
-
-            tag = "реализация";
-        }
-        else if (title.includes("🪨")) {
-
-            tag = "саморазвитие";
-        }
-        else if (title.includes("🌊")) {
-
-            tag = "личное";
-        }
-        else if (title.includes("🌬️")) {
-
-            tag = "духовность";
-        }
-
-        return `\n#${tag}`;
+        return this.findFounder(graph, celestia);;
     }
 }
+
+function setNote(title, text) {
+
+    let note = new Note(title, text);
+
+    if (Is.Thought(note)) {
+
+        note = new Thought(title, text);
+    }
+    else if (Is.Dream(note)) {
+
+        note = new Dream(title, text);
+    }
+    else if (Is.Daily(note)) {
+
+        note = new Daily(title, text);
+    }
+
+    return note;
+}
+
 
 module.exports = {
 
@@ -425,5 +418,6 @@ module.exports = {
     Periodic,
     Dream,
     Thought,
-    Daily
+    Daily,
+    setNote
 };

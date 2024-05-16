@@ -1,67 +1,31 @@
-const { setPlugin2, Ident, World, Word, Is, Has, Links } = require('./subClasses');
-const { setPlugin1, Note, Human, Periodic, Dream, Thought, Daily } = require('./noteClasses');
+const { setNote } = require('./noteClasses');
+
+const { Links } = require('./links');
+const { Tager } = require('./tags');
 
 
-async function update(FILE, WORLD, CELESTIA, plug) {
+async function update(plugin, file, graph, celestia) {
 
-    plugin = plug;
+    console.log(`---------------------------\n"${file.basename}"\n---------------------------`);
 
-    console.log(`---------------------------\n"${FILE.basename}"\n---------------------------`);
+    let title = file.basename;
+    let text = await plugin.app.vault.read(file);
 
-    let TITLE = FILE.basename;
-    const TEXT = await plugin.app.vault.read(FILE);
+    let note = setNote(title, text);
 
-    let note = new Note(TITLE, TEXT);
+    let links = new Links(note);
+    let fLinks = await links.getFLinks(graph, celestia);
 
-    if (Is.Thought(note)) {
+    let tags = await Tager.getTags(note, graph, celestia);
 
-        note = new Thought(TITLE, TEXT);
-    }
-    else if (Is.Dream(note)) {
+    let noteNewText = getNewNoteText(note, fLinks, tags);
 
-        note = new Dream(TITLE, TEXT);
-    }
-    else if (Is.Daily(note)) {
+    await plugin.app.vault.modify(file, noteNewText);
+}
 
-        note = new Daily(TITLE, TEXT);
-    }
+function getNewNoteText(note, fLinks, tags) {
 
-    let l = [];
-
-    if (note.len === 1) {
-        if (Is.Daily(note)) {
-
-            if (note.title === "0000-00-00") {
-
-                l = await note.findConnect(CELESTIA, CELESTIA);
-            }
-            else {
-
-                l = await note.findConnect(WORLD, CELESTIA);
-            }
-        }
-        else {
-
-            let [founderTitle, founderText] = await note.findFounder(CELESTIA, CELESTIA);
-
-            let f = new Note(founderTitle, founderText);
-            l.push(f, f, f);
-        }
-    }
-    else {
-
-        l = await note.findConnect(WORLD, CELESTIA);
-    }
-
-    let [founder, ancestor, father] = l;
-
-    let links = new Links(note, WORLD.ident, founder, ancestor, father);
-
-    let tag = await note.findTag(WORLD, CELESTIA);
-
-    const NOTE_TEXT_NEW = [links.getFLinks(), tag, `# ${note.head}`, note.content].join("\n");
-
-    await plugin.app.vault.modify(FILE, NOTE_TEXT_NEW);
+    return [fLinks, `\n${tags}\n`, `# ${note.head}\n`, note.content].join("\n");
 }
 
 

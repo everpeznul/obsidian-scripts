@@ -42,9 +42,6 @@ module.exports.onload = async (plugin) => {
         }
     }
 
-    console.log(process.cwd());
-
-
     plugin.addCommand({
         id: 'update links of note',
         name: 'Update Links of Note',
