@@ -49,9 +49,9 @@ class Links {
 
         await this.getLinks(this.note, graph, celestia)
 
-        let founder = this.founder.getLink(graph.ident.founderAlias);
-        let ancestor = this.ancestor.getLink(graph.ident.ancestorAlias);
-        let father = this.father.getLink(graph.ident.fatherAlias);
+        let founder = this.founder.getLink(graph.alias.founder);
+        let ancestor = this.ancestor.getLink(graph.alias.ancestor);
+        let father = this.father.getLink(graph.alias.father);
 
         if (Is.Note(this.note)) {
 
@@ -59,7 +59,7 @@ class Links {
             let [date, OK] = Has.Date(this.note);
             if (OK) {
 
-                ancestor += `[${graph.ident.fatherAlias}:: [[${date}#${date}|${date}]]]`;
+                ancestor += `[${graph.alias.ancestor}:: [[${date}#${date}|${date}]]]`;
             }
         }
 

@@ -63,23 +63,23 @@ class Word {
     }
 }
 
-class Ident {
+class Alias {
 
-    constructor(founderAlias, ancestorAlias, fatherAlias) {
+    constructor(fouder, ancestor, father) {
 
-        this.founderAlias = founderAlias;
-        this.ancestorAlias = ancestorAlias;
-        this.fatherAlias = fatherAlias;
+        this.fouder = fouder;
+        this.ancestor = ancestor;
+        this.father = father;
     }
 }
 
 class World {
 
-    constructor(files, path, ident) {
+    constructor(files, path, alias) {
 
         this.files = files;
         this.path = path;
-        this.ident = ident;
+        this.alias = alias;
     }
 }
 
@@ -134,7 +134,7 @@ module.exports = {
 
     setPlugin2,
     Word,
-    Ident,
+    Alias,
     World,
     Is,
     Has
