@@ -1,4 +1,4 @@
-const { setNote } = require('./noteClasses');
+const { setNote } = require('./note-Classes');
 
 
 class Tager {

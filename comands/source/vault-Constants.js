@@ -1,4 +1,4 @@
-const { Alias, World } = require('./subClasses');
+const { Alias, World } = require('./note-subClasses');
 
 
 const VOID_FOUNDER_ALIAS = "herald";

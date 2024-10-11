@@ -1,16 +1,24 @@
 module.exports = {}
 module.exports.onload = async (plugin) => {
 
-    const { setPlugin1 } = require('/Users/everpeznul/myObsidian/obsidian-scripts/source/noteClasses');
-    const { setPlugin2 } = require('/Users/everpeznul/myObsidian/obsidian-scripts/source/subClasses');
+    const path = require('path');
+
+    const vaultBasePath = plugin.app.vault.adapter.basePath;
+
+    const { setPlugin1 } = require(path.join(vaultBasePath, 'obsidian-scripts/comands/source/note-Classes'));
+    const { setPlugin2 } = require(path.join(vaultBasePath, 'obsidian-scripts/comands/source/note-subClasses'));
+
+    const { setPlugin } = require(path.join(vaultBasePath, 'obsidian-scripts/source/core/store-plugin'));
+
+    setPlugin(plugin);
 
     setPlugin1(plugin);
     setPlugin2(plugin);
 
-    const { updateAllLinks } = require('/Users/everpeznul/myObsidian/obsidian-scripts/comandUpdateAllLinks');
-    const { updateNoteLinks } = require('/Users/everpeznul/myObsidian/obsidian-scripts/comandUpdateNoteLinks');
-    const { newPeriodicNote } = require('/Users/everpeznul/myObsidian/obsidian-scripts/comandNewPeriodicNote');
-
+    const { updateAllLinks } = require(path.join(vaultBasePath, 'obsidian-scripts/comands/comand-UpdateAllLinks'));
+    const { updateNoteLinks } = require(path.join(vaultBasePath, 'obsidian-scripts/comands/comand-UpdateNoteLinks'));
+    const { newPeriodicNote } = require(path.join(vaultBasePath, 'obsidian-scripts/comands/comand-NewPeriodicNote'));
+    
     const { Modal } = plugin.passedModules.obsidian;
 
     class ConfirmationModal extends Modal {

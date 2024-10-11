@@ -1,8 +1,14 @@
-const { Is, Has } = require('./subClasses');
-const { Note } = require('./noteClasses');
+const { Is, Has } = require('./note-subClasses');
+const { Note } = require('./note-Classes');
 
 
 class Links {
+
+    constructor(note) {
+
+        this.note = note;
+
+    }
 
     async getLinks(note, graph, celestia) {
 
@@ -37,12 +43,6 @@ class Links {
         this.founder = links[0];
         this.ancestor = links[1];
         this.father = links[2];
-    }
-
-    constructor(note) {
-
-        this.note = note;
-
     }
 
     async getFLinks(graph, celestia) {

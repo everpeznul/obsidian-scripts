@@ -1,4 +1,4 @@
-const { Word, Is, Has } = require('./subClasses');
+const { Word, Is, Has } = require('./note-subClasses');
 
 
 let plugin
@@ -104,7 +104,7 @@ class Note {
 
             if (create) {
 
-                const { update } = require('./updateLinks')
+                const { update } = require('./vault-updateLinks')
 
                 try {
 

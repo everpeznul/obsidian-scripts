@@ -1,7 +1,7 @@
-const { setNote } = require('./noteClasses');
+const { setNote } = require('./note-Classes');
 
 const { Links } = require('./links');
-const { Tager } = require('./tags');
+const { Tager } = require('./note-tags');
 
 
 async function update(plugin, file, graph, celestia) {

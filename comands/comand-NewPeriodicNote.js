@@ -22,7 +22,7 @@ async function newPeriodicNote(plugin) {
         });
 
         const newFileName = `master/<9> void/${name}.${title}.<${maxNumber + 1}>.md`;
-        await app.vault.create(newFileName, '\n#').catch(error => {
+        await app.vault.create(newFileName, '').catch(error => {
             console.error(`Ошибка при создании файла: ${error}`);
         });
     }

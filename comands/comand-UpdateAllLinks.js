@@ -1,6 +1,6 @@
-const { World } = require('./source/subClasses');
-const { update } = require('./source/updateLinks');
-const { VOID_PATH, CELESTIA_PATH, VOID_IDENT, CELESTIA_IDENT } = require('./source/vaultConstants');
+const { World } = require('./source/note-subClasses');
+const { update } = require('./source/vault-updateLinks');
+const { VOID_PATH, CELESTIA_PATH, VOID_IDENT, CELESTIA_IDENT } = require('./source/vault-Constants');
 
 
 async function updateAllLinks(plugin) {

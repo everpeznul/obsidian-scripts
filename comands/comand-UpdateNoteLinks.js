@@ -1,6 +1,6 @@
-const { World } = require('./source/subClasses');
-const { update } = require('./source/updateLinks');
-const { VOID_PATH, CELESTIA_PATH, VOID_IDENT, CELESTIA_IDENT } = require('./source/vaultConstants');
+const { World } = require('./source/note-subClasses');
+const { update } = require('./source/vault-updateLinks');
+const { VOID_PATH, CELESTIA_PATH, VOID_IDENT, CELESTIA_IDENT } = require('./source/vault-Constants');
 
 
 async function updateNoteLinks(plugin) {
@@ -17,8 +17,18 @@ async function updateNoteLinks(plugin) {
 
     let file = plugin.app.workspace.getActiveFile();
 
-    let GRAPH = await plugin.helpers.suggest(['VOID', 'CELESTIA'], [VOID, CELESTIA]);
+    let GRAPH;
+    if (file.path.includes(VOID_PATH)) {
 
+        GRAPH = VOID;
+    } else if (file.path.includes(CELESTIA_PATH)) {
+
+        GRAPH = CELESTIA;
+    } else {
+
+        new Notice('Файл не принадлежит ни к VOID, ни к CELESTIA.');
+        return;
+    }
     await update(plugin, file, GRAPH, CELESTIA);
 }
 
