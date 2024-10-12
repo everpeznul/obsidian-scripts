@@ -1,10 +1,7 @@
-const { Word, Is, Has } = require("./class/note-subClasses");
+const { Word } = require("./note-subClasses");
+const { getPlugin } = require("../core/store-plugin");
 
-let plugin;
-
-function setPlugin1(plug) {
-  plugin = plug;
-}
+const plugin = getPlugin();
 
 class Note {
   //методы установки полей класса
@@ -87,7 +84,7 @@ class Note {
 
     if (!reqFile) {
       if (create) {
-        const { update } = require("./scripts/update");
+        const { update } = require("./vault-updateLinks");
 
         try {
           await plugin.app.vault.create(
@@ -222,155 +219,6 @@ class Note {
   }
 }
 
-class Human extends Note {
-  getHead() {
-    return this.name.getFContent().split(" ")[1];
-  }
-
-  constructor(TITLE, TEXT) {
-    console.log("Human constructor");
-
-    super(TITLE, TEXT);
-  }
-}
-
-class Periodic extends Note {
-  constructor(TITLE, TEXT) {
-    console.log("Periodic constructor");
-
-    super(TITLE, TEXT);
-  }
-}
-
-class Dream extends Periodic {
-  getHead() {
-    const DREAM_NUMBER = {
-      1: "Первый",
-      2: "Второй",
-      3: "Третий",
-      4: "Четвёртый",
-      5: "Пятый",
-      6: "Шестой",
-      7: "Седьмой",
-      8: "Восьмой",
-      9: "Девятый",
-    };
-
-    return DREAM_NUMBER[this.name.getFContent()];
-  }
-
-  constructor(TITLE, TEXT) {
-    console.log("Dream constructor");
-
-    super(TITLE, TEXT);
-  }
-
-  async findAncestor(graph, celestia) {
-    let [date, ok] = Has.Date(this);
-    if (ok) {
-      console.log(`    Thought ancestor:\n    "${date}"`);
-      let ancestor = await this.find(graph, date);
-
-      return ancestor;
-    }
-  }
-  async findFather(graph, celestia) {
-    return this.findFounder(graph);
-  }
-}
-
-class Thought extends Periodic {
-  getHead() {
-    const THOUGHT_NUMBER = {
-      1: "Первая",
-      2: "Вторая",
-      3: "Третья",
-      4: "Четвёртая",
-      5: "Пятая",
-      6: "Шестая",
-      7: "Седьмая",
-      8: "Восьмая",
-      9: "Девятая",
-    };
-
-    return THOUGHT_NUMBER[this.name.getFContent()];
-  }
-
-  constructor(TITLE, TEXT) {
-    console.log("Thought constructor");
-
-    super(TITLE, TEXT);
-  }
-
-  async findAncestor(graph, celestia) {
-    let [date, ok] = Has.Date(this);
-    if (ok) {
-      console.log(`Thought ancestor:\n    "${date}"`);
-      let ancestor = await this.find(graph, date);
-
-      return ancestor;
-    }
-  }
-  async findFather(graph, celestia) {
-    return this.findFounder(graph);
-  }
-}
-
-class Daily extends Periodic {
-  constructor(TITLE, TEXT) {
-    console.log("Daily constructor");
-
-    super(TITLE, TEXT);
-  }
-
-  async findFounder(graph, celestia) {
-    let founder;
-
-    let [date, ok] = Has.Date(this);
-    if (ok && date !== "0000-00-00") {
-      founder = await this.find(graph, "0000-00-00");
-    } else if (ok && date === "0000-00-00") {
-      founder = await this.find(
-        celestia,
-        "<1>❤️‍🔥.календарь.периодическая.daily"
-      );
-    }
-
-    console.log(`    Daily founder:\n    "${date}"`);
-
-    return founder;
-  }
-
-  async findAncestor(graph, celestia) {
-    return this.findFounder(graph, celestia);
-  }
-
-  async findFather(graph, celestia) {
-    return this.findFounder(graph, celestia);
-  }
-}
-
-function setNote(title, text) {
-  let note = new Note(title, text);
-
-  if (Is.Thought(note)) {
-    note = new Thought(title, text);
-  } else if (Is.Dream(note)) {
-    note = new Dream(title, text);
-  } else if (Is.Daily(note)) {
-    note = new Daily(title, text);
-  }
-
-  return note;
-}
-
 module.exports = {
-  setPlugin1,
   Note,
-  Human,
-  Periodic,
-  Dream,
-  Thought,
-  Daily,
-  setNote,
 };
