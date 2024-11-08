@@ -4,61 +4,20 @@ module.exports.onload = async (plugin) => {
 
     const vaultBasePath = plugin.app.vault.adapter.basePath;
 
-    const { setPlugin } = require(path.join(
-        vaultBasePath,
-        'obsidian-scripts/source/core/store-plugin',
-    ));
+    const { setPlugin } = require(path.join(vaultBasePath, 'obsidian-scripts/source/core/store-plugin'));
 
     setPlugin(plugin);
 
-    const { updateAllLinks } = require(path.join(
-        vaultBasePath,
-        'obsidian-scripts/comands/comand-UpdateAllLinks',
-    ));
-    const { updateNoteLinks } = require(path.join(
-        vaultBasePath,
-        'obsidian-scripts/comands/comand-UpdateNoteLinks',
-    ));
-    const { newPeriodicNote } = require(path.join(
-        vaultBasePath,
-        'obsidian-scripts/comands/comand-NewPeriodicNote',
-    ));
-
-    const { Modal } = plugin.passedModules.obsidian;
-
-    class ConfirmationModal extends Modal {
-        constructor(app, message, action) {
-            super(app);
-
-            this.modalEl.addClass('confirm-modal');
-
-            this.contentEl.createEl('p', { text: message });
-
-            this.contentEl.createDiv('modal-button-container', (buttonsEl) => {
-                buttonsEl
-                    .createEl('button', { text: 'Отмена' })
-                    .addEventListener('click', () => this.close());
-
-                const btnConfirm = buttonsEl.createEl('button', {
-                    attr: { type: 'submit' },
-                    cls: 'mod-cta',
-                    text: 'Подтвердить',
-                });
-
-                btnConfirm.addEventListener('click', async (_e) => {
-                    this.close();
-                    await action();
-                });
-
-                setTimeout(() => btnConfirm.focus(), 50);
-            });
-        }
-    }
+    const { ConfirmationModal } = require(path.join(vaultBasePath, 'obsidian-scripts/source/class/tool/modal-confirmation'))
 
     plugin.addCommand({
         id: 'update links of note',
         name: 'Update Links of Note',
         callback: async () => {
+            const { updateNoteLinks } = require(path.join(
+                vaultBasePath,
+                'obsidian-scripts/comands/comand-UpdateNoteLinks',
+            ));
             new Notice('Начато обновление ссылок заметки');
 
             await updateNoteLinks();
@@ -71,17 +30,18 @@ module.exports.onload = async (plugin) => {
         id: 'update links of vault',
         name: 'Update Links of Vault',
         callback: async () => {
-            new ConfirmationModal(
-                plugin.app,
-                'Это действие обновит ссылки во всех файлах. Вы уверены?',
-                async () => {
-                    new Notice('Начато обновление ссылок хранилища');
+            new ConfirmationModal(plugin.app, 'Это действие обновит ссылки во всех файлах. Вы уверены?', async () => {
+                const { updateAllLinks } = require(path.join(
+                    vaultBasePath,
+                    'obsidian-scripts/comands/comand-UpdateAllLinks',
+                ));
 
-                    await updateAllLinks();
+                new Notice('Начато обновление ссылок хранилища');
 
-                    new Notice('Обновление ссылок хранилища закончено');
-                },
-            ).open();
+                await updateAllLinks();
+
+                new Notice('Обновление ссылок хранилища закончено');
+            }).open();
         },
     });
 
@@ -89,6 +49,11 @@ module.exports.onload = async (plugin) => {
         id: 'create new periodic',
         name: 'Create New Periodic',
         callback: async () => {
+            const { newPeriodicNote } = require(path.join(
+                vaultBasePath,
+                'obsidian-scripts/comands/comand-NewPeriodicNote',
+            ));
+
             new Notice('Создание начато');
 
             await newPeriodicNote();
