@@ -5,3 +5,4 @@
 Для корректной работы скриптов имена файлов должны быть определённого вида.
 # obsidian-scripts
 # obsidian-scripts
+# obsidian-scripts
