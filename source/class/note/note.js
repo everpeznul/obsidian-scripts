@@ -84,7 +84,7 @@ class Note {
 
         if (!reqFile) {
             if (create) {
-                const { update } = require('./vault-updateLinks');
+                const { update } = require('../../scripts/update.js');
 
                 try {
                     await plugin.app.vault.create(

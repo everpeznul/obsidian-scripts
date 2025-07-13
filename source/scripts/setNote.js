@@ -3,6 +3,10 @@ const {
     Human,
     Periodic,
     Daily,
+    Weekly,
+    Monthly,
+    Quarterly,
+    Yearly,
     Dream,
     Thought,
 } = require('../class/note/index-note');
@@ -17,7 +21,15 @@ function setNote(title, text) {
         note = new Dream(title, text);
     } else if (Is.Daily(note)) {
         note = new Daily(title, text);
-    }
+    } else if (Is.Weekly(note)) {
+        note = new Weekly(title, text);
+    } else if (Is.Monthly(note)) {
+        note = new Monthly(title, text);
+    } else if (Is.Quarterly(note)) {
+        note = new Quarterly(title, text);
+    } else if (Is.Yearly(note)) {
+        note = new Yearly(title, text);
+    } 
 
     return note;
 }

@@ -81,9 +81,26 @@ class Is {
         return /^\d{4}-\d{2}-\d{2}$/.test(note.title);
     }
 
+    static Weekly(note) {
+        return /^\d{4}-W\d{2}$/.test(note.title);
+    }
+
+    static Monthly(note) {
+        return /^\d{4}-\d{2}$/.test(note.title);
+    }
+    
+    static Quarterly(note) {
+        return /^\d{4}-Q\d{1}$/.test(note.title);
+    }
+
+    static Yearly(note) {
+        return /^\d{4}$/.test(note.title);
+    }
+
     static Human(note) {
         return /^человек\.[^.]+$/.test(note.title);
     }
+    
 
     static Note(note) {
         return (
@@ -98,6 +115,42 @@ class Is {
 class Has {
     static Date(note) {
         let match = note.title.match(/(\d{4}-\d{2}-\d{2})/);
+        if (match) {
+            return [match[1], true];
+        } else {
+            return [null, false];
+        }
+    }
+
+    static Week(note) {
+        let match = note.title.match(/(\d{4}-W\d{2})/);
+        if (match) {
+            return [match[1], true];
+        } else {
+            return [null, false];
+        }
+    }
+
+    static Month(note) {
+        let match = note.title.match(/(\d{4}-\d{2})/);
+        if (match) {
+            return [match[1], true];
+        } else {
+            return [null, false];
+        }
+    }
+
+    static Quarter(note) {
+        let match = note.title.match(/(\d{4}-Q\d{1})/);
+        if (match) {
+            return [match[1], true];
+        } else {
+            return [null, false];
+        }
+    }
+
+    static Year(note) {
+        let match = note.title.match(/(\d{4})/);
         if (match) {
             return [match[1], true];
         } else {

@@ -1,9 +1,9 @@
 const { Has } = require('./note-subClasses');
 const { Periodic } = require('./note-periodic');
 
-class Daily extends Periodic {
+class Monthly extends Periodic {
     constructor(TITLE, TEXT) {
-        console.log('Daily constructor');
+        console.log('Monthly constructor');
 
         super(TITLE, TEXT);
     }
@@ -11,17 +11,17 @@ class Daily extends Periodic {
     async findFounder(graph, celestia) {
         let founder;
 
-        let [date, ok] = Has.Date(this);
-        if (ok && date !== '0000-00-00') {
-            founder = await this.find(graph, '0000-00-00');
-        } else if (ok && date === '0000-00-00') {
+        let [date, ok] = Has.Month(this);
+        if (ok && date !== '0000-00') {
+            founder = await this.find(graph, '0000-00');
+        } else if (ok && date === '0000-00') {
             founder = await this.find(
                 celestia,
-                '<4>❤️‍🔥.календарь.периодическая.daily',
+                '<4>❤️‍🔥.календарь.tasks.периодическая.monthly',
             );
         }
 
-        console.log(`    Daily founder:\n    "${date}"`);
+        console.log(`    Monthly founder:\n    "${date}"`);
 
         return founder;
     }
@@ -36,5 +36,5 @@ class Daily extends Periodic {
 }
 
 module.exports = {
-    Daily,
+    Monthly,
 };

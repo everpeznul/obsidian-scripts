@@ -35,11 +35,11 @@ class Tager {
         if (title.includes('❤️‍🔥')) {
             tag = 'реализация';
         } else if (title.includes('🪨')) {
-            tag = 'саморазвитие';
-        } else if (title.includes('🌊')) {
             tag = 'личное';
-        } else if (title.includes('🌬️')) {
+        } else if (title.includes('🌊')) {
             tag = 'духовность';
+        } else if (title.includes('🌬️')) {
+            tag = 'саморазвитие';
         }
 
         return `#${tag}`;
